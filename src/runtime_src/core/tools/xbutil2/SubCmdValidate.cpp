@@ -276,7 +276,6 @@ runTestCase( const std::shared_ptr<xrt_core::device>& _dev, const std::string& p
     static const std::map<std::string, std::string> test_map = {
       { "22_verify.py",             "validate.exe"    },
       { "23_bandwidth.py",          "kernel_bw.exe"   },
-      { "versal_23_bandwidth.py",   "kernel_bw.exe"   },
       { "host_mem_23_bandwidth.py", "hostmemory.exe"  },
       { "xcl_vcu_test.exe",         "xcl_vcu_test.exe"},
       { "xcl_iops_test.exe",        "xcl_iops_test.exe"}
@@ -1047,16 +1046,7 @@ dmaTest(const std::shared_ptr<xrt_core::device>& _dev, boost::property_tree::ptr
 void
 bandwidthKernelTest(const std::shared_ptr<xrt_core::device>& _dev, boost::property_tree::ptree& _ptTest)
 {
-  std::string name;
-  try {
-    name = xrt_core::device_query<xrt_core::query::rom_vbnv>(_dev);
-  } catch (...) {
-    logger(_ptTest, "Error", "Unable to find device VBNV");
-    _ptTest.put("status", test_token_failed);
-    return;
-  }
-  std::string testcase = (name.find("vck5000") != std::string::npos) ? "versal_23_bandwidth.py" : "23_bandwidth.py";
-  runTestCase(_dev, testcase, _ptTest.get<std::string>("xclbin"), _ptTest);
+  runTestCase(_dev, "23_bandwidth.py", _ptTest.get<std::string>("xclbin"), _ptTest);
 }
 
 /*
