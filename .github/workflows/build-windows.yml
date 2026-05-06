@@ -4,10 +4,10 @@
 name: Build XRT (Windows)
 
 on:
-#  push:
-#    branches: [master, main]
-#  pull_request:
-#    branches: [master, main]
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
   workflow_dispatch:
 
 # Disable vcpkg NuGet binary cache; the Azure feed is often unreachable from GitHub runners.
