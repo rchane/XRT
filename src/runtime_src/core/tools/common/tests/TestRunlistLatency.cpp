@@ -20,7 +20,7 @@ TestRunlistLatency::TestRunlistLatency()
 {}
 
 boost::property_tree::ptree
-TestRunListLatency::run(const std::shared_ptr<xrt_core::device>&)
+TestRunlistLatency::run(const std::shared_ptr<xrt_core::device>&)
 {
   boost::property_tree::ptree ptree = get_test_header();
   return ptree;
