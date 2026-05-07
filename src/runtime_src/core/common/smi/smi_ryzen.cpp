@@ -25,12 +25,12 @@ config_gen_ryzen()
   validate_test_desc = {
     {"aie-reconfig-overhead", "Run end-to-end array reconfiguration overhead through shim DMA", "hidden"},
     {"all", "All applicable validate tests will be executed (default)", "common"},
-    {"cmd-chain-latency", "Run end-to-end latency test using command chaining", "hidden"},
-    {"cmd-chain-throughput", "Run end-to-end throughput test using command chaining", "hidden"},
+    {"runlist-latency", "Run end-to-end latency test using runlist", "hidden"},
+    {"runlist-throughput", "Run end-to-end throughput test using runlist", "hidden"},
     {"df-bw", "Run bandwidth test on data fabric", "hidden"},
     {"gemm", "Measure the TOPS value of GEMM INT8operations", "common"},
     {"latency", "Run end-to-end latency test", "common"},
-    {"quick", "Run a subset of four tests: \n1. latency \n2. throughput \n3. cmd-chain-latency \n4. cmd-chain-throughput", "hidden"},
+    {"quick", "Run a subset of four tests: \n1. latency \n2. throughput \n3. runlist-latency \n4. runlist-throughput", "hidden"},
     {"tct-all-col", "Measure average TCT processing time for all columns", "hidden"},
     {"tct-one-col", "Measure average TCT processing time for one column", "hidden"},
     {"throughput", "Run end-to-end throughput test", "common"},
@@ -119,8 +119,8 @@ config_gen_npu3()
 
   validate_test_desc = {
     {"all", "All applicable validate tests will be executed (default)", "common"},
-    {"cmd-chain-latency", "Run end-to-end latency test using command chaining", "hidden"},
-    {"cmd-chain-throughput", "Run end-to-end throughput test using command chaining", "hidden"},
+    {"runlist-latency", "Run end-to-end latency test using runlist", "hidden"},
+    {"runlist-throughput", "Run end-to-end throughput test using runlist", "hidden"},
     {"df-bw", "Run bandwidth test on data fabric", "hidden"},
     {"shim-dma-bw", "Run 2xRead/1xWrite bandwidth test for SHIM DMA", "hidden"},
     {"latency", "Run end-to-end latency test", "common"},
