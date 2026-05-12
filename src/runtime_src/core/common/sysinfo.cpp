@@ -7,8 +7,6 @@
 
 #include "xrt/detail/version-git.h"
 
-#include <boost/algorithm/string/predicate.hpp>
-
 #include <cstdlib>
 
 namespace xrt_core::sysinfo {
@@ -49,8 +47,7 @@ get_os_info()
 bool
 is_advanced()
 {
-  const char* v = std::getenv("XRTSMIAdvanced"); // NOLINT(concurrency-mt-unsafe)
-  if (v && boost::iequals(v, "1"))
+  if (std::getenv("XRTSMIAdvanced") != nullptr) // NOLINT(concurrency-mt-unsafe)
     return true;
 
   return xrt_core::sysinfo::detail::is_advanced();
