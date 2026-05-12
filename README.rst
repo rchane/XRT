@@ -16,10 +16,10 @@ FleXible RunTime
    :align: center
 
 
-FleXible RunTime (XRT) is implemented as a combination of user-space and kernel driver components. It provides an
-abstracted runtime software interface for AMD NPUs and AMD FPGAs, enabling seamless access across Ryzen-based
-client systems, Versal-based embedded platforms, and programmable logic (PL) fabric on Versal, MPSoC, and Alveo
-platforms. XRT runs on both Linux and Windows, hosted on x86_64 or aarch64.
+FleXible RunTime (XRT) is implemented as a combination of user-space and kernel driver components, providing an 
+abstracted runtime software interface for AMD NPUs and AMD FPGAs. It enables seamless access to NPUs on Ryzen-based 
+client systems and Versal-based embedded platforms, as well as to programmable logic (PL) fabric on Versal, MPSoC, 
+and Alveo platforms. XRT supports both Linux and Windows, running on x86_64 and aarch64 host architectures.
 
 `XRT Header files <https://github.com/Xilinx/XRT/tree/master/src/runtime_src/core/include/xrt>`_
 
