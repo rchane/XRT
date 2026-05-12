@@ -127,4 +127,10 @@ get_os_info(boost::property_tree::ptree &pt)
   pt.put("processor", processor_name());
 }
 
+bool
+is_advanced()
+{
+  return false; //TODO: remove once Windows side is removed
+}
+
 } //xrt_core::sysinfo
