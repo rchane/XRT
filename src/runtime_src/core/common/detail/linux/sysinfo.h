@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (C) 2023-2025 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (C) 2023-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 // 3rd Party Library - Include Files
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
 // System - Include Files
+#include <cstdlib>
 #include <gnu/libc-version.h>
 #include <sys/utsname.h>
 #include <thread>
@@ -130,7 +132,8 @@ get_os_info(boost::property_tree::ptree &pt)
 bool
 is_advanced()
 {
-  return true; //TODO: implement Linux side
+  const char* v = std::getenv("XRTSMIAdvanced");
+  return v && boost::iequals(v, "1");
 }
 
 } //xrt_core::sysinfo

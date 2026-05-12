@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (C) 2023-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 // Local - Include files
 #include "core/common/error.h"
@@ -11,6 +11,7 @@
 #include <array>
 
 // 3rd Party Library - Include Files
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
 
@@ -188,6 +189,11 @@ is_advanced()
 
   result = RegGetValueA(HKEY_LOCAL_MACHINE, "SYSTEM\\ControlSet001\\Services\\Npu2McdmDriver", "XRTSMIAdvanced", RRF_RT_REG_DWORD, &valueType, &value, &valueSize);
   if ((result == ERROR_SUCCESS) && (valueType == REG_DWORD) && (value == 1))
+    return true;
+
+  char buf[16] = {};
+  const DWORD n = GetEnvironmentVariableA("XRTSMIAdvanced", buf, static_cast<DWORD>(sizeof(buf)));
+  if (n > 0 && n < sizeof(buf) && boost::iequals(buf, "1"))
     return true;
 
   return false;
