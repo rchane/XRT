@@ -11,7 +11,6 @@
 #include <array>
 
 // 3rd Party Library - Include Files
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
 
@@ -175,28 +174,6 @@ get_os_info(boost::property_tree::ptree &pt)
   BufferSize = sizeof value;
   RegGetValueA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString", RRF_RT_ANY, NULL, (PVOID)&value, &BufferSize);
   pt.put("processor", value);
-}
-
-bool
-is_advanced()
-{
-  DWORD value = 0;
-  DWORD valueSize = sizeof(value);
-  DWORD valueType;
-  LONG result = RegGetValueA(HKEY_LOCAL_MACHINE, "SYSTEM\\ControlSet001\\Services\\IpuMcdmDriver", "XRTSMIAdvanced", RRF_RT_REG_DWORD, &valueType, &value, &valueSize);
-  if ((result == ERROR_SUCCESS) && (valueType == REG_DWORD) && (value == 1))
-    return true;
-
-  result = RegGetValueA(HKEY_LOCAL_MACHINE, "SYSTEM\\ControlSet001\\Services\\Npu2McdmDriver", "XRTSMIAdvanced", RRF_RT_REG_DWORD, &valueType, &value, &valueSize);
-  if ((result == ERROR_SUCCESS) && (valueType == REG_DWORD) && (value == 1))
-    return true;
-
-  char buf[16] = {};
-  const DWORD n = GetEnvironmentVariableA("XRTSMIAdvanced", buf, static_cast<DWORD>(sizeof(buf)));
-  if (n > 0 && n < sizeof(buf) && boost::iequals(buf, "1"))
-    return true;
-
-  return false;
 }
 
 } //xrt_core::sysinfo

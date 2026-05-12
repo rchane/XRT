@@ -2,13 +2,11 @@
 // Copyright (C) 2023-2026 Advanced Micro Devices, Inc. All rights reserved.
 
 // 3rd Party Library - Include Files
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/format.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
 // System - Include Files
-#include <cstdlib>
 #include <gnu/libc-version.h>
 #include <sys/utsname.h>
 #include <thread>
@@ -127,13 +125,6 @@ get_os_info(boost::property_tree::ptree &pt)
   pt.put("hostname", hn);
 
   pt.put("processor", processor_name());
-}
-
-bool
-is_advanced()
-{
-  const char* v = std::getenv("XRTSMIAdvanced");
-  return v && boost::iequals(v, "1");
 }
 
 } //xrt_core::sysinfo
