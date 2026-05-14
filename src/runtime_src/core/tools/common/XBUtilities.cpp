@@ -88,8 +88,9 @@ XBUtilities::Timer::format_time(std::chrono::duration<double> duration)
 
 
 boost::property_tree::ptree
-XBUtilities::get_available_devices(bool inUserDomain)
+XBUtilities::get_available_bdfs(bool inUserDomain)
 {
+  // Minimal listing for BDF selection and str_available_devs.
   xrt_core::device_collection deviceCollection;
   collect_devices(std::set<std::string> {"_all_"}, inUserDomain, deviceCollection);
   boost::property_tree::ptree pt;
@@ -100,16 +101,12 @@ XBUtilities::get_available_devices(bool inUserDomain)
     const auto device_class = xrt_core::device_query_default<xrt_core::query::device_class>(device, xrt_core::query::device_class::type::alveo);
     pt_dev.put("device_class", xrt_core::query::device_class::enum_to_str(device_class));
 
-    //user pf doesn't have mfg node. Also if user pf is loaded, it means that the card is not is mfg mode
     const auto is_mfg = xrt_core::device_query_default<xrt_core::query::is_mfg>(device, false);
 
-    //if factory mode
     if (is_mfg) {
       auto mGoldenVer = xrt_core::device_query<xrt_core::query::mfg_ver>(device);
       std::string vbnv = "xilinx_" + xrt_core::device_query<xrt_core::query::board_name>(device) + "_GOLDEN_"+ std::to_string(mGoldenVer);
       pt_dev.put("vbnv", vbnv);
-      pt_dev.put("id", "n/a");
-      pt_dev.put("instance","n/a");
     }
     else {
       switch (device_class) {
@@ -120,40 +117,7 @@ XBUtilities::get_available_devices(bool inUserDomain)
         pt_dev.put("name", xrt_core::device_query<xrt_core::query::rom_vbnv>(device));
         break;
       }
-      
-      if (device_class == xrt_core::query::device_class::type::ryzen) {
-        try { // Ryzen/NPU: derive UUID from PCIe BDF
-          pt_dev.put("id", xrt_core::query::pcie_bdf::to_uuid(
-            xrt_core::device_query<xrt_core::query::pcie_bdf>(device)).to_string());
-        }
-        catch(...) {}
-      }
-      else {
-        try { //1RP
-          pt_dev.put("id", xrt_core::query::rom_time_since_epoch::to_string(
-            xrt_core::device_query<xrt_core::query::rom_time_since_epoch>(device)));
-        }
-        catch(...) {}
-
-        try { //2RP - overwrites 1RP if available
-          auto logic_uuids = xrt_core::device_query<xrt_core::query::logic_uuids>(device);
-          if (!logic_uuids.empty())
-            pt_dev.put("id", xrt_core::query::interface_uuids::to_uuid_upper_string(logic_uuids[0]));
-        }
-        catch(...) {}
-      }
-
-      try {
-        auto instance = xrt_core::device_query<xrt_core::query::instance>(device);
-        std::string pf = device->is_userpf() ? "user" : "mgmt";
-        pt_dev.put("instance",boost::str(boost::format("%s(inst=%d)") % pf % instance));
-      }
-      catch(const xrt_core::query::exception&) {
-          // The instance wasn't added
-      }
-
     }
-    pt_dev.put("is_ready", xrt_core::device_query_default<xrt_core::query::is_ready>(device, true));
 
     pt.push_back(std::make_pair("", pt_dev));
   }
@@ -161,7 +125,7 @@ XBUtilities::get_available_devices(bool inUserDomain)
 }
 
 boost::property_tree::ptree
-XBUtilities::get_available_devices_with_metadata(bool inUserDomain)
+XBUtilities::get_available_devices(bool inUserDomain)
 {
   xrt_core::device_collection deviceCollection;
   collect_devices(std::set<std::string> {"_all_"}, inUserDomain, deviceCollection);
@@ -309,7 +273,7 @@ XBUtilities::str_available_devs(bool _inUserDomain)
   //gather available devices for user to pick from
   std::stringstream available_devs;
   available_devs << "\n Available devices:\n";
-  boost::property_tree::ptree available_devices = XBUtilities::get_available_devices(_inUserDomain);
+  boost::property_tree::ptree available_devices = XBUtilities::get_available_bdfs(_inUserDomain);
   for (auto& kd : available_devices) {
     boost::property_tree::ptree& dev = kd.second;
     if (boost::iequals(dev.get<std::string>("device_class"), xrt_core::query::device_class::enum_to_str(xrt_core::query::device_class::type::alveo)))
@@ -865,7 +829,7 @@ get_xrt_pretty_version()
   std::stringstream ss;
   boost::property_tree::ptree pt_xrt;
   xrt_core::sysinfo::get_xrt_info(pt_xrt);
-  const boost::property_tree::ptree available_devices = XBUtilities::get_available_devices_with_metadata(true);
+  const boost::property_tree::ptree available_devices = XBUtilities::get_available_devices(true);
   XBUtilities::fill_xrt_versions(pt_xrt, ss, available_devices);
   return ss.str();
 }

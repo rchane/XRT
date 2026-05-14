@@ -62,10 +62,10 @@ namespace XBUtilities {
   std::string get_device_class(const std::string& deviceBDF, bool in_user_domain);
 
   boost::property_tree::ptree
-  get_available_devices(bool inUserDomain);
+  get_available_bdfs(bool inUserDomain);
 
   boost::property_tree::ptree
-  get_available_devices_with_metadata(bool inUserDomain);
+  get_available_devices(bool inUserDomain);
 
   std::string
   str_available_devs(bool _inUserDomain);

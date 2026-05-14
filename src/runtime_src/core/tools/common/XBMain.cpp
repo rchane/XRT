@@ -128,7 +128,7 @@ void  main_(int argc, char** argv,
     // Was default device requested?
     if (boost::iequals(sDevice, "default")) {
       sDevice.clear();
-      boost::property_tree::ptree available_devices = XBU::get_available_devices(isUserDomain);
+      boost::property_tree::ptree available_devices = XBU::get_available_bdfs(isUserDomain);
 
       // DRC: Are there any devices
       if (available_devices.empty())
@@ -218,7 +218,7 @@ void  main_(int argc, char** argv,
     boost::property_tree::ptree configTreeMain;
     std::string config;
 
-    boost::property_tree::ptree available_devices = XBU::get_available_devices(isUserDomain);
+    boost::property_tree::ptree available_devices = XBU::get_available_bdfs(isUserDomain);
 
     if (available_devices.empty()) //no device
       config = xrt_smi_default::get_default_smi_config();
