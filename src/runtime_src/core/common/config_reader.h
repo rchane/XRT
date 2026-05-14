@@ -684,6 +684,17 @@ get_qdma_aio_enable()
   return value;
 }
 
+/**
+ * When true, batched io_uring submits (DmaWriteBdAsync / PushBdToQueueAsync + one wait).
+ * When false (default), synchronous AIE DMA APIs are used throughout.
+ */
+inline bool
+get_io_uring()
+{
+  static bool value = detail::get_bool_value("Runtime.io_uring", false);
+  return value;
+}
+
 inline std::string
 get_hw_em_driver()
 {
@@ -1181,7 +1192,14 @@ get_dtrace_control_file_path()
 inline unsigned int
 get_dtrace_log_level()
 {
-  static unsigned int value = detail::get_uint_value("Debug.dtrace_log_level", 1);
+  static unsigned int value = detail::get_uint_value("Debug.dtrace_log_level", 0);
+  return value;
+}
+
+inline bool
+get_dtrace_output_json_format()
+{
+  static bool value = detail::get_bool_value("Debug.dtrace_output_json_format", false);
   return value;
 }
 

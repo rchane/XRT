@@ -330,9 +330,10 @@ public:
 
 // Protected constructor
 elf_impl::
-elf_impl(ELFIO::elfio&& elfio, elf::platform platform)
+elf_impl(ELFIO::elfio&& elfio, elf::platform platform, std::string path)
   : m_elfio{std::move(elfio)}
   , m_platform{platform}
+  , m_path{std::move(path)}
 {}
 
 // Get symbol information from .symtab at given index
@@ -913,8 +914,8 @@ class elf_aie_gen2 : public elf_impl
   }
 
 public:
-  elf_aie_gen2(ELFIO::elfio&& elfio, elf::platform platform)
-    : elf_impl{std::move(elfio), platform}
+  elf_aie_gen2(ELFIO::elfio&& elfio, elf::platform platform, std::string path)
+    : elf_impl{std::move(elfio), platform, std::move(path)}
   {
     // Parse ELF sections to populate kernel and section maps
     parse_sections();
@@ -1358,8 +1359,8 @@ class elf_aie_gen2_plus : public elf_impl
   }
 
 public:
-  elf_aie_gen2_plus(ELFIO::elfio&& elfio, elf::platform platform)
-    : elf_impl{std::move(elfio), platform}
+  elf_aie_gen2_plus(ELFIO::elfio&& elfio, elf::platform platform, std::string path)
+    : elf_impl{std::move(elfio), platform, std::move(path)}
   {
     // Parse ELF sections to populate kernel and section maps
     parse_sections();
@@ -1469,22 +1470,22 @@ namespace {
 
 // Factory function - creates correct derived type based on platform
 static std::shared_ptr<xrt::elf_impl>
-create_elf_impl(ELFIO::elfio&& elfio)
+create_elf_impl(ELFIO::elfio&& elfio, const std::string& path = {})
 {
-  auto os_abi = elfio.get_os_abi();
+  auto platform = static_cast<xrt::elf::platform>(elfio.get_os_abi());
 
-  switch (os_abi) {
-  case static_cast<uint8_t>(xrt::elf::platform::aie2p):
-    return std::make_shared<xrt::elf_aie_gen2>(std::move(elfio), xrt::elf::platform::aie2p);
-  case static_cast<uint8_t>(xrt::elf::platform::aie2ps):
-  case static_cast<uint8_t>(xrt::elf::platform::aie2ps_group):
-  case static_cast<uint8_t>(xrt::elf::platform::aie4):
-  case static_cast<uint8_t>(xrt::elf::platform::aie4a):
-  case static_cast<uint8_t>(xrt::elf::platform::aie4z):
-    return std::make_shared<xrt::elf_aie_gen2_plus>(std::move(elfio), static_cast<xrt::elf::platform>(os_abi));
+  switch (platform) {
+  case xrt::elf::platform::aie2p:
+    return std::make_shared<xrt::elf_aie_gen2>(std::move(elfio), platform, path);
+  case xrt::elf::platform::aie2ps:
+  case xrt::elf::platform::aie2ps_group:
+  case xrt::elf::platform::aie4:
+  case xrt::elf::platform::aie4a:
+  case xrt::elf::platform::aie4z:
+    return std::make_shared<xrt::elf_aie_gen2_plus>(std::move(elfio), platform, path);
   default:
     throw std::runtime_error("ELF contains unsupported platform OS/ABI: " +
-                             std::to_string(static_cast<int>(os_abi)));
+                             std::to_string(static_cast<int>(platform)));
   }
 }
 
@@ -1507,7 +1508,7 @@ valid_or_error(const std::shared_ptr<elf_impl>& handle)
 
 elf::
 elf(const std::string& fnm)
-  : detail::pimpl<elf_impl>{create_elf_impl(load_elfio(fnm))}
+  : detail::pimpl<elf_impl>{create_elf_impl(load_elfio(fnm), fnm)}
 {}
 
 elf::
@@ -1634,6 +1635,14 @@ get_kernel_properties_and_args(std::shared_ptr<xrt::elf_impl> elf_impl,
     }
   }
   throw std::runtime_error("Kernel not found: " + kernel_name);
+}
+
+std::string
+get_filename(const xrt::elf_impl* elf_impl)
+{
+  return elf_impl
+    ? elf_impl->get_filename()
+    : "";
 }
 
 } // xrt_core::elf_int
