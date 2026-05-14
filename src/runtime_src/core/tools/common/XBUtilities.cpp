@@ -278,7 +278,7 @@ XBUtilities::resolve_device(bool is_user_domain,
   if (device_var.defaulted()) {
     if (boost::iequals(device_bdf, "default")) {
       device_bdf.clear();
-      boost::property_tree::ptree available_devices = get_available_devices(is_user_domain);
+      boost::property_tree::ptree available_devices = get_available_bdfs(is_user_domain);
       if (available_devices.empty())
         throw std::runtime_error("No devices found.");
       if (available_devices.size() > 1) {
