@@ -61,8 +61,12 @@ namespace XBUtilities {
 
   std::string get_device_class(const std::string& deviceBDF, bool in_user_domain);
 
+  void
+  append_device_extended_metadata(boost::property_tree::ptree& pt_dev,
+                                    const std::shared_ptr<xrt_core::device>& device);
+
   boost::property_tree::ptree
-  get_available_devices(bool inUserDomain);
+  get_available_devices(bool inUserDomain, bool include_extended_metadata = false);
 
   std::string
   str_available_devs(bool _inUserDomain);

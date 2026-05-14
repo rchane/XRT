@@ -67,6 +67,85 @@ namespace xq = xrt_core::query;
 
 // ------ F U N C T I O N S ---------------------------------------------------
 
+void
+XBUtilities::append_device_extended_metadata(boost::property_tree::ptree& pt_dev,
+                                             const std::shared_ptr<xrt_core::device>& device)
+{
+  const auto is_mfg = xrt_core::device_query_default<xrt_core::query::is_mfg>(device, false);
+  if (is_mfg)
+    return;
+
+  try {
+    const auto fw_ver = xrt_core::device_query<xq::firmware_version>(device, xq::firmware_version::firmware_type::npu_firmware);
+    std::string version = "N/A";
+    if (fw_ver.major != 0 || fw_ver.minor != 0 || fw_ver.patch != 0 || fw_ver.build != 0) {
+      version = boost::str(boost::format("%u.%u.%u.%u")
+        % fw_ver.major % fw_ver.minor % fw_ver.patch % fw_ver.build);
+    }
+    pt_dev.put("firmware_version", version);
+  }
+  catch(...) {
+    // The npu firmware wasn't added
+  }
+  try {
+    const auto cert_fw_ver = xrt_core::device_query<xq::cert_firmware_version>(device);
+    std::string version = "N/A";
+    if (cert_fw_ver.major != 0 || cert_fw_ver.minor != 0 || cert_fw_ver.hotfix != 0 || cert_fw_ver.build != 0) {
+      version = boost::str(boost::format("%u.%u.%u.%u")
+        % cert_fw_ver.major % cert_fw_ver.minor % cert_fw_ver.hotfix % cert_fw_ver.build);
+    }
+    pt_dev.put("cert_firmware_version", version);
+  }
+  catch(...) {
+    // The CERT firmware wasn't added
+  }
+  try {
+    const auto aie_tiles = xrt_core::device_query<xq::aie_tiles_stats>(device);
+    std::string topology = boost::str(boost::format("%ux%u") % aie_tiles.rows % aie_tiles.cols);
+    pt_dev.put("aie_topology", topology);
+  }
+  catch (...) {
+    // AIE topology wasn't added
+  }
+
+  try {
+    // Map hardware type to AIE architecture version string
+    const auto& pcie_id = xrt_core::device_query<xrt_core::query::pcie_id>(device);
+    xrt_core::smi::smi_hardware_config smi_hrdw;
+    auto hardware_type = smi_hrdw.get_hardware_type(pcie_id);
+
+    switch (hardware_type) {
+    case xrt_core::smi::smi_hardware_config::hardware_type::phx:
+      pt_dev.put("aie_architecture_version", "aie2");
+      break;
+    case xrt_core::smi::smi_hardware_config::hardware_type::stxA0:
+    case xrt_core::smi::smi_hardware_config::hardware_type::stxB0:
+    case xrt_core::smi::smi_hardware_config::hardware_type::stxH:
+    case xrt_core::smi::smi_hardware_config::hardware_type::krk1:
+      pt_dev.put("aie_architecture_version", "aie2p");
+      break;
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f0:
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f1:
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f2:
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f3:
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_B01:
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_B02:
+    case xrt_core::smi::smi_hardware_config::hardware_type::npu3_B03:
+      pt_dev.put("aie_architecture_version", "aie4");
+      break;
+    case xrt_core::smi::smi_hardware_config::hardware_type::aie2ps:
+      pt_dev.put("aie_architecture_version", "aie2ps");
+      break;
+    default:
+      pt_dev.put("aie_architecture_version", "N/A");
+      break;
+    }
+  }
+  catch (...) {
+    // AIE architecture version wasn't added
+  }
+}
+
 std::string
 XBUtilities::Timer::format_time(std::chrono::duration<double> duration) 
 {
@@ -88,7 +167,7 @@ XBUtilities::Timer::format_time(std::chrono::duration<double> duration)
 
 
 boost::property_tree::ptree
-XBUtilities::get_available_devices(bool inUserDomain)
+XBUtilities::get_available_devices(bool inUserDomain, bool include_extended_metadata)
 {
   xrt_core::device_collection deviceCollection;
   collect_devices(std::set<std::string> {"_all_"}, inUserDomain, deviceCollection);
@@ -144,76 +223,6 @@ XBUtilities::get_available_devices(bool inUserDomain)
       }
 
       try {
-        const auto fw_ver = xrt_core::device_query<xq::firmware_version>(device, xq::firmware_version::firmware_type::npu_firmware);
-        std::string version = "N/A";
-        if (fw_ver.major != 0 || fw_ver.minor != 0 || fw_ver.patch != 0 || fw_ver.build != 0) {
-          version = boost::str(boost::format("%u.%u.%u.%u")
-            % fw_ver.major % fw_ver.minor % fw_ver.patch % fw_ver.build);
-        }
-        pt_dev.put("firmware_version", version);
-      }
-      catch(...) {
-        // The npu firmware wasn't added
-      }
-      try {
-        const auto cert_fw_ver = xrt_core::device_query<xq::cert_firmware_version>(device);
-        std::string version = "N/A";
-        if (cert_fw_ver.major != 0 || cert_fw_ver.minor != 0 || cert_fw_ver.hotfix != 0 || cert_fw_ver.build != 0) {
-          version = boost::str(boost::format("%u.%u.%u.%u")
-            % cert_fw_ver.major % cert_fw_ver.minor % cert_fw_ver.hotfix % cert_fw_ver.build);
-        }
-        pt_dev.put("cert_firmware_version", version);
-      }
-      catch(...) {
-        // The CERT firmware wasn't added
-      }
-      try {
-        const auto aie_tiles = xrt_core::device_query<xq::aie_tiles_stats>(device);
-        std::string topology = boost::str(boost::format("%ux%u") % aie_tiles.rows % aie_tiles.cols);
-        pt_dev.put("aie_topology", topology);
-      }
-      catch (...) {
-        // AIE topology wasn't added
-      }
-
-      try {
-        // Map hardware type to AIE architecture version string
-        const auto& pcie_id = xrt_core::device_query<xrt_core::query::pcie_id>(device);
-        xrt_core::smi::smi_hardware_config smi_hrdw;
-        auto hardware_type = smi_hrdw.get_hardware_type(pcie_id);
-
-        switch (hardware_type) {
-        case xrt_core::smi::smi_hardware_config::hardware_type::phx:
-          pt_dev.put("aie_architecture_version", "aie2");
-          break;
-        case xrt_core::smi::smi_hardware_config::hardware_type::stxA0:
-        case xrt_core::smi::smi_hardware_config::hardware_type::stxB0:
-        case xrt_core::smi::smi_hardware_config::hardware_type::stxH:
-        case xrt_core::smi::smi_hardware_config::hardware_type::krk1:
-          pt_dev.put("aie_architecture_version", "aie2p");
-          break;
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f0:
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f1:
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f2:
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_f3:
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_B01:
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_B02:
-        case xrt_core::smi::smi_hardware_config::hardware_type::npu3_B03:
-          pt_dev.put("aie_architecture_version", "aie4");
-          break;
-        case xrt_core::smi::smi_hardware_config::hardware_type::aie2ps:
-          pt_dev.put("aie_architecture_version", "aie2ps");
-          break;
-        default:
-          pt_dev.put("aie_architecture_version", "N/A");
-          break;
-        }
-      }
-      catch (...) {
-        // AIE architecture version wasn't added
-      }
-
-      try {
         auto instance = xrt_core::device_query<xrt_core::query::instance>(device);
         std::string pf = device->is_userpf() ? "user" : "mgmt";
         pt_dev.put("instance",boost::str(boost::format("%s(inst=%d)") % pf % instance));
@@ -221,6 +230,9 @@ XBUtilities::get_available_devices(bool inUserDomain)
       catch(const xrt_core::query::exception&) {
           // The instance wasn't added
       }
+
+      if (include_extended_metadata)
+        append_device_extended_metadata(pt_dev, device);
 
     }
     pt_dev.put("is_ready", xrt_core::device_query_default<xrt_core::query::is_ready>(device, true));
@@ -792,7 +804,7 @@ get_xrt_pretty_version()
   std::stringstream ss;
   boost::property_tree::ptree pt_xrt;
   xrt_core::sysinfo::get_xrt_info(pt_xrt);
-  const boost::property_tree::ptree available_devices = XBUtilities::get_available_devices(true);
+  const boost::property_tree::ptree available_devices = XBUtilities::get_available_devices(true, true);
   XBUtilities::fill_xrt_versions(pt_xrt, ss, available_devices);
   return ss.str();
 }

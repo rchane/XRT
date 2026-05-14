@@ -42,7 +42,7 @@ ReportHost::getPropertyTree20202( const xrt_core::device * /*_pDevice*/,
   xrt_core::sysinfo::get_xrt_info(pt_xrt_info);
   pt.add_child("xrt", pt_xrt_info);
 
-  auto dev_pt = XBUtilities::get_available_devices(m_is_user);
+  auto dev_pt = XBUtilities::get_available_devices(m_is_user, true);
   pt.add_child("devices", dev_pt);
 
   // There can only be 1 root node
